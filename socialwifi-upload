@@ -1,0 +1,67 @@
+#!/bin/bash
+# Author: Talha Khan <tkhan@5gcomms.com>, 13/07/2020
+
+# Add Social WiFi files to site hotspot
+
+# Check if we are running as root, if not rerun script as root
+[ `whoami` = root ] || exec su -c $0 root
+
+# Usage helper function
+display_usage() {
+        echo "This script must be run with super-user privileges."
+        echo -e "Usage: $0 <UniFi Site ID>\n"
+}
+
+# Display usage and exit if no parameters supplied
+if [ -z $1 ]
+then
+        display_usage
+        exit 1
+fi
+
+# Display usage and exit if help requested
+if [[ ( $1 == "-h" ) || ( $1 == "--help" ) ]]
+then
+        display_usage
+        exit 0
+fi
+
+# Set $SITEID to first parameter
+SITEID=$1
+
+# Check if UniFi Site ID supplied is invalid and exit
+if [ ! -d /usr/lib/unifi/data/sites/$SITEID/ ]
+then
+        display_usage
+        echo "Invalid UniFi Site ID: $SITEID"
+        echo "Does your site exist on the UniFi controller?"
+        echo "Installation Guide: https://academy.socialwifi.com/installation-guides/ubiquiti-unifi-installation-guide/"
+        exit 1
+fi
+
+# Create temporary folder
+[ ! -d /tmp/socialwifi-$SITEID ] && mkdir /tmp/socialwifi-$SITEID
+cd /tmp/socialwifi-$SITEID
+
+# Download and unzip latest Social WiFi files
+wget https://socialwifi.com/installation/ubiquity-unifi
+unzip ubiquity-unifi
+
+# Copy files to UniFi hotspot folder
+if [ ! -d /tmp/socialwifi-$SITEID/ubiquity_unifi ]
+then
+        display_usage
+        echo "Error downloading/unzipping, please check URL"
+        rm -rf /tmp/socialwifi-$SITEID
+        exit 1
+fi
+
+cp -R ubiquity_unifi/* /usr/lib/unifi/data/sites/$SITEID/
+
+# Set correct file permissions
+cd /usr/lib/unifi/data/sites/$SITEID/
+chmod 640 config.properties app-unifi-hotspot-portal/index.html app-unifi-hotspot-portal/auth.html
+chown unifi:unifi config.properties app-unifi-hotspot-portal/index.html app-unifi-hotspot-portal/auth.html
+
+# Delete downloaded files
+rm -rf /tmp/socialwifi-$SITEID
