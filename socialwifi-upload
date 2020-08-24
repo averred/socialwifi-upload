@@ -27,7 +27,7 @@ then
 fi
 
 # Set $SITEID to first parameter
-SITEID=$1
+SITEID=${1,,}
 
 # Check if UniFi Site ID supplied is invalid and exit
 if [ ! -d /usr/lib/unifi/data/sites/$SITEID/ ]
