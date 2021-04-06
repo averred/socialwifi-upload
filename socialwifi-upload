@@ -39,20 +39,20 @@ then
         exit 1
 fi
 
-# Create temporary folder
-[ ! -d /tmp/socialwifi-$SITEID ] && mkdir /tmp/socialwifi-$SITEID
-cd /tmp/socialwifi-$SITEID
+# Create temporary folder and cd
+TMPDIR=$(mktemp -d -t sw.$SITEID.XXXXXXXX)
+cd $TMPDIR
 
 # Download and unzip latest Social WiFi files
 wget https://socialwifi.com/installation/ubiquity-unifi
 unzip ubiquity-unifi
 
 # Copy files to UniFi hotspot folder
-if [ ! -d /tmp/socialwifi-$SITEID/ubiquity_unifi ]
+if [ ! -d $TMPDIR/ubiquity_unifi ]
 then
         display_usage
         echo "Error downloading/unzipping, please check URL"
-        rm -rf /tmp/socialwifi-$SITEID
+        rm -rf $TMPDIR
         exit 1
 fi
 
@@ -64,4 +64,4 @@ chmod 640 config.properties app-unifi-hotspot-portal/index.html app-unifi-hotspo
 chown unifi:unifi config.properties app-unifi-hotspot-portal/index.html app-unifi-hotspot-portal/auth.html
 
 # Delete downloaded files
-rm -rf /tmp/socialwifi-$SITEID
+rm -rf $TMPDIR
