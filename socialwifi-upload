@@ -30,14 +30,16 @@ fi
 SITEID=${1,,}
 
 # Check if UniFi Site ID supplied is invalid and exit
-if [ ! -d /usr/lib/unifi/data/sites/$SITEID/ ]
+site_check = $(mongo --quiet --port 27117 ace --eval "db.getCollection('site').find({\"name\": \"$SITEID\"}).count()")
+if [site_check -eq 0]
 then
         display_usage
         echo "Invalid UniFi Site ID: $SITEID"
-        echo "Does your site exist on the UniFi controller?"
-        echo "Installation Guide: https://academy.socialwifi.com/installation-guides/ubiquiti-unifi-installation-guide/"
+        echo "Please check the Site ID and try again."
         exit 1
 fi
+
+mkdir -p /usr/lib/unifi/data/sites/$SITEID/
 
 # Create temporary folder and cd
 TMPDIR=$(mktemp -d -t sw.$SITEID.XXXXXXXX)
